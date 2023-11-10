@@ -265,7 +265,6 @@ int main()
     for (auto it = epsilon.begin(); it != epsilon.end(); ++it) {
         cout << *it << endl;
     }
-    cout << ">>>>>>>>>>" << endl;
     vector<char>epsilonnonterminals;
     for (auto const& element : firstK)
     {
