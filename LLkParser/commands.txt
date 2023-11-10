@@ -6,3 +6,4 @@ C -> *DC
 C -> e
 D -> (S)
 D -> a
+F -> AC

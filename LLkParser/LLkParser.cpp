@@ -227,12 +227,43 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
     return result;
 }
 
+set<string>findEpsNonTerminals(vector<Transition>transitions) {
+    set<string>result;
+    for (int i = 0; i < transitions.size(); i++) {
+        if (transitions[i].end == "e") {
+            result.insert(transitions[i].start);
+        }
+    }
+    for (int i = 0; i < transitions.size(); i++) {
+        int count = 0;
+        string end = transitions[i].end;
+        for (int j = 0; j < end.length(); j++) {
+            string ch = "";
+            ch += end[j];
+            if (result.count(ch) > 0) {
+                count++;
+            }
+        }
+        if (count == transitions[i].end.length()) {
+            result.insert(transitions[i].start);
+        }
+    }
+    return result;
+}
+
+
 
 int main()
 {
     string filePath = "commands.txt";
     vector<Transition> transitions = ReadAllTransitions(filePath);
     map<string, vector<string>> firstK = FirstK(transitions);
+    cout << "Epsilon non-terminals:" << endl;
+    set<string>epsilon = findEpsNonTerminals(transitions);
+    for (auto it = epsilon.begin(); it != epsilon.end(); ++it) {
+        cout << *it << endl;
+    }
+    vector<char>epsilonnonterminals;
     for (auto const& element : firstK)
     {
         cout << element.first << " ";
