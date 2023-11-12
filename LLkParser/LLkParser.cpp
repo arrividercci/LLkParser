@@ -321,31 +321,81 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
     return result;
 }
 
-vector<vector<string>> GetOutputTable(vector<Transition> transitions, map<string, vector<string>> follow1k, map<string, vector<string>> first1k)
-{
-    vector<vector<string>> result;
-    for (auto & transition : transitions)
-    {
-        vector<string> terminals;
-        for (auto & ch : transition.end)
-        {
-            if (!isNonTerminal(ch))
-            {
-                if (terminals.empty()) terminals.push_back(string(1, ch));
-                else terminals = combineAllWords(terminals, ch);
-            }
-            else
-            {
-                if (terminals.empty()) terminals = first1k[string(1, ch)];
-                else terminals = combineAllWords(terminals, first1k[string(1, ch)]);
-            }
-        }
-        terminals = combineAllWords(terminals, follow1k[transition.start]);
-        terminals = GetAllFirstCharactersOfWords(terminals);
-        result.push_back(terminals);
-    }
-    return result;
-}
+//vector<pair<string, vector<string>>> GetOutputTable(vector<Transition> transitions, map<string, vector<string>> follow1k, map<string, vector<string>> first1k)
+//{
+//    vector<pair<string, vector<string>>> result;
+//    for (auto & transition : transitions)
+//    {
+//        vector<string> terminals;
+//        for (auto & ch : transition.end)
+//        {
+//            if (!isNonTerminal(ch))
+//            {
+//                if (terminals.empty()) terminals.push_back(string(1, ch));
+//                else terminals = combineAllWords(terminals, ch);
+//            }
+//            else
+//            {
+//                if (terminals.empty()) terminals = first1k[string(1, ch)];
+//                else terminals = combineAllWords(terminals, first1k[string(1, ch)]);
+//            }
+//        }
+//        terminals = combineAllWords(terminals, follow1k[transition.start]);
+//        terminals = GetAllFirstCharactersOfWords(terminals);
+//        result.push_back(make_pair(transition.start, terminals));
+//    }
+//    return result;
+//}
+
+//vector<string> GetAllTerminals(vector<Transition> transitions)
+//{
+//    vector<string> result;
+//    for (auto& transition : transitions)
+//    {
+//        for (auto& ch : transition.end)
+//        {
+//            if (!isNonTerminal(ch))
+//            {
+//                if (find(result.begin(), result.end(), string(1, ch)) == result.end())
+//                {
+//                    result.push_back(string(1, ch));
+//                }
+//            }
+//        }
+//    }
+//    return result;
+//}
+//
+//vector<string> GetAllNonTerminals(vector<Transition> transitions)
+//{
+//    vector<string> result;
+//    for (auto& transition : transitions)
+//    {
+//        for (auto& ch : transition.end)
+//        {
+//            if (isNonTerminal(ch))
+//            {
+//                if (find(result.begin(), result.end(), string(1, ch)) == result.end())
+//                {
+//                    result.push_back(string(1, ch));
+//                }
+//            }
+//        }
+//    }
+//    return result;
+//}
+
+//vector<string> GetLL1ControlTable(vector<pair<string, vector<string>>> outputTable, vector<string> terminals, vector<string> nonTerminals)
+//{
+//    for (auto& nonTerminal : nonTerminals)
+//    {
+//        for (auto& terminal : terminals)
+//        {
+//
+//        }
+//    }
+//}
+
 
 int main()
 {
@@ -380,17 +430,21 @@ int main()
         cout << endl;
     }
 
-    vector<vector<string>> outputTable = GetOutputTable(transitions, followk, firstK);
-    cout << "OUTPUT Table" << endl;
+    //vector<pair<string, vector<string>>> outputTable = GetOutputTable(transitions, followk, firstK);
+    /*cout << "OUTPUT Table" << endl;
     for (int i = 0; i < outputTable.size(); i++)
     {
-        cout << transitions[i].start << "->" << transitions[i].end << " " << setw(6);
-        for (auto const& e : outputTable[i])
+        cout << i + 1 << ". " << outputTable[i].first << "->" << transitions[i].end << " " << setw(6);
+        for (auto const& e : outputTable[i].second)
         {
             cout << e << " ";
         }
         cout << endl;
-    }
+    }*/
+
+    /*vector<string> terminals = GetAllTerminals(transitions);
+    vector<string> nonTerminals = GetAllNonTerminals(transitions);*/
+
 
     
     return 0;
