@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 #include <iomanip>
+#include <algorithm>
+
 
 using namespace std;
 
@@ -123,7 +125,7 @@ public:
 //parse transition
 Transition ParseToTransition(const string& str)
 {
-    size_t pos = str.find("->");//gets position of separator("->") 
+    size_t pos = str.find("->");//gets position of separator("->")
     string start = str.substr(0, pos);//gets string before separator
     start.erase(remove(start.begin(), start.end(), ' '), start.end());//removes all whitespaces
     string end = str.substr(pos + 2);//gets string after separator
@@ -163,7 +165,7 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
             {
                 string terminal(1, transition.end[0]);
                 if (find(terminals.begin(), terminals.end(), terminal) == terminals.end())
-                { 
+                {
                     terminals.push_back(terminal);
                 }
             }
@@ -179,13 +181,13 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
             string currentNonTerminal = currentNonTerminalFirstK.first;
 
             vector<string> previousStepTerminals = currentNonTerminalFirstK.second;
-            
+
             for (auto const& transition : transitions)
             {
                 if (transition.start == currentNonTerminal)
                 {
                     if (!isNonTerminal(transition.end[0])) continue;
-                    
+
                     vector<string> previousNonTerminalFirstK = result[string(1, transition.end[0])];
                     vector<string> combinedWords = previousNonTerminalFirstK;
                     if (combinedWords.empty()) continue;
@@ -223,7 +225,7 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
                 }
             }
         }
-        
+
     }
     return result;
 }
@@ -280,7 +282,7 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
                 else {
                     int eps = 0;
                     for (int p = at + 1; p < transitions[j].end.length(); p++) {
-                   
+
                         if (!isNonTerminal(transitions[j].end[p])) {
                             string symbol = "";
                             symbol += transitions[j].end[p];
@@ -397,6 +399,72 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
 //}
 
 
+map<pair<string, string>, string> buildParsingTable(vector<Transition> transitions, map<string, vector<string>> firstk, map<string, vector<string>> followk, set<string> epsilon)
+{
+    map<pair<string, string>, string> parsingTable;
+
+    for (auto const &transition : transitions)
+    {
+        string start = transition.start;
+        string end = transition.end;
+
+        // ¬изначаЇмо FIRST дл€ end
+        vector<string> firstSet;
+
+        for (int i = 0; i < end.size(); ++i)
+        {
+            char currentChar = end[i];
+            if (isNonTerminal(currentChar))
+            {
+                vector<string> firstOfNonTerminal = firstk[string(1, currentChar)];
+                firstSet.insert(firstSet.end(), firstOfNonTerminal.begin(), firstOfNonTerminal.end());
+
+                // якщо epsilon не Ї в FIRST[nonTerminal], перериваЇмо цикл
+                if (find(firstOfNonTerminal.begin(), firstOfNonTerminal.end(), "e") == firstOfNonTerminal.end())
+                    break;
+            }
+            else
+            {
+                string currentTerminal(1, currentChar);
+                firstSet.push_back(currentTerminal);
+                break;
+            }
+        }
+
+        // ƒодаЇмо FIRST до таблиц≥
+        for (const string &terminal : firstSet)
+        {
+            if (terminal != "e") // якщо epsilon не Ї в FIRST, додаЇмо запис в таблицю
+                parsingTable[{start, terminal}] = transition.end;
+            else
+            {
+                // якщо epsilon Ї в FIRST, додаЇмо FOLLOW[start] до таблиц≥
+                vector<string> followSet = followk[start];
+                for (const string &followTerminal : followSet)
+                {
+                    parsingTable[{start, followTerminal}] = transition.end;
+                }
+            }
+        }
+    }
+
+    return parsingTable;
+}
+
+void printParsingTable(const map<pair<string, string>, string> &parsingTable)
+{
+    cout << setw(12) << "Non-Term" << setw(12) << "Terminal" << setw(12) << "Production" << endl;
+
+    for (const auto &entry : parsingTable)
+    {
+        string nonTerminal = entry.first.first;
+        string terminal = entry.first.second;
+        string production = entry.second;
+
+        cout << setw(12) << nonTerminal << setw(12) << terminal << setw(12) << production << endl;
+    }
+}
+
 int main()
 {
     string filePath = "commands.txt";
@@ -430,6 +498,13 @@ int main()
         cout << endl;
     }
 
+
+    map<pair<string, string>, string> parsingTable = buildParsingTable(transitions, firstK, followk, epsilon);
+
+    cout << "Parsing Table:" << endl;
+    printParsingTable(parsingTable);
+
+
     //vector<pair<string, vector<string>>> outputTable = GetOutputTable(transitions, followk, firstK);
     /*cout << "OUTPUT Table" << endl;
     for (int i = 0; i < outputTable.size(); i++)
@@ -446,7 +521,7 @@ int main()
     vector<string> nonTerminals = GetAllNonTerminals(transitions);*/
 
 
-    
+
     return 0;
 }
 
