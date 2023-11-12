@@ -253,7 +253,74 @@ set<string>findEpsNonTerminals(vector<Transition>transitions) {
     return result;
 }
 
-
+map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string, vector<string>>firstk, set<string>epsilon) {
+    map<string, vector<string>>result;
+    for (int i = 0; i < transitions.size(); i++) {
+        string left_nonterminal = transitions[i].start;
+        vector<string>follow;
+        if (left_nonterminal == "S") {
+            follow.push_back("e");
+        }
+        for (int j = 0; j < transitions.size(); j++) {
+            if (transitions[j].end.find(left_nonterminal) != string::npos) {
+                int at = transitions[j].end.find(left_nonterminal);
+                if (at == transitions[j].end.length() - 1) {
+                    string symbol = "";
+                    symbol += transitions[j].end[at];
+                    if (transitions[j].start == symbol) {
+                        continue;
+                    }
+                    else {
+                        vector<string> followleft = result[transitions[j].start];
+                        for (int k = 0; k < followleft.size(); k++) {
+                            //cout << "Follow: " << transitions[j].start << " " << followleft[k] << endl;
+                            follow.push_back(followleft[k]);
+                        }
+                    }
+                }
+                else {
+                    int eps = 0;
+                    for (int p = at + 1; p < transitions[j].end.length(); p++) {
+                   
+                        if (!isNonTerminal(transitions[j].end[p])) {
+                            string symbol = "";
+                            symbol += transitions[j].end[p];
+                            follow.push_back(symbol);
+                            //cout << symbol;
+                            break;
+                        }
+                        else {
+                            string symbol = "";
+                            symbol += transitions[j].end[p];
+                            if (epsilon.count(symbol) > 0) {
+                                eps++;
+                            }
+                                vector<string>first = firstk[symbol];
+                                for (int k = 0; k < first.size(); k++) {
+                                    follow.push_back(first[k]);
+                                }
+                        }
+                    }
+                    if (eps = transitions[j].end.length() - at + 1) {
+                        vector<string> followleft = result[transitions[j].start];
+                        for (int k = 0; k < followleft.size(); k++) {
+                            //cout << "Follow: " << transitions[j].start << " " << followleft[k] << endl;
+                            follow.push_back(followleft[k]);
+                        }
+                    }
+                }
+            }
+            //result[left_nonterminal] = follow;
+        }
+        set<string>followset;
+        for (int l = 0; l < follow.size(); l++) {
+            followset.insert(follow[l]);
+        }
+        vector<string> helper(followset.begin(), followset.end());
+        result[left_nonterminal] = helper;
+    }
+    return result;
+}
 
 int main()
 {
@@ -265,7 +332,8 @@ int main()
     for (auto it = epsilon.begin(); it != epsilon.end(); ++it) {
         cout << *it << endl;
     }
-    vector<char>epsilonnonterminals;
+    //vector<char>epsilonnonterminals;
+    cout << "First():" << endl;
     for (auto const& element : firstK)
     {
         cout << element.first << " ";
@@ -275,7 +343,17 @@ int main()
         }
         cout << endl;
     }
-    
+    cout << "Follow():" << endl;
+    map<string, vector<string>> followk = FollowK1(transitions, firstK, epsilon);
+    for (auto const& element : followk)
+    {
+        cout << element.first << " ";
+        for (auto const& value : element.second)
+        {
+            cout << value << " ";
+        }
+        cout << endl;
+    }
         
     return 0;
 }
