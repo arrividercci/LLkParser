@@ -1,13 +1,12 @@
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <fstream>
 #include <map>
 #include <set>
+#include <stack>
 #include <iomanip>
 #include <algorithm>
-
 
 using namespace std;
 
@@ -296,10 +295,10 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
                             if (epsilon.count(symbol) > 0) {
                                 eps++;
                             }
-                                vector<string>first = firstk[symbol];
-                                for (int k = 0; k < first.size(); k++) {
-                                    follow.push_back(first[k]);
-                                }
+                            vector<string>first = firstk[symbol];
+                            for (int k = 0; k < first.size(); k++) {
+                                follow.push_back(first[k]);
+                            }
                         }
                     }
                     if (eps = transitions[j].end.length() - at + 1) {
@@ -398,7 +397,6 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
 //    }
 //}
 
-
 map<pair<string, string>, string> buildParsingTable(vector<Transition> transitions, map<string, vector<string>> firstk, map<string, vector<string>> followk, set<string> epsilon)
 {
     map<pair<string, string>, string> parsingTable;
@@ -408,7 +406,7 @@ map<pair<string, string>, string> buildParsingTable(vector<Transition> transitio
         string start = transition.start;
         string end = transition.end;
 
-        // ��������� FIRST ��� end
+        // Визначаємо FIRST для end
         vector<string> firstSet;
 
         for (int i = 0; i < end.size(); ++i)
@@ -419,7 +417,7 @@ map<pair<string, string>, string> buildParsingTable(vector<Transition> transitio
                 vector<string> firstOfNonTerminal = firstk[string(1, currentChar)];
                 firstSet.insert(firstSet.end(), firstOfNonTerminal.begin(), firstOfNonTerminal.end());
 
-                // ���� epsilon �� � � FIRST[nonTerminal], ���������� ����
+                // Якщо epsilon не є в FIRST[nonTerminal], перериваємо цикл
                 if (find(firstOfNonTerminal.begin(), firstOfNonTerminal.end(), "e") == firstOfNonTerminal.end())
                     break;
             }
@@ -431,14 +429,14 @@ map<pair<string, string>, string> buildParsingTable(vector<Transition> transitio
             }
         }
 
-        // ������ FIRST �� �������
+        // Додаємо FIRST до таблиці
         for (const string &terminal : firstSet)
         {
-            if (terminal != "e") // ���� epsilon �� � � FIRST, ������ ����� � �������
+            if (terminal != "e") // Якщо epsilon не є в FIRST, додаємо запис в таблицю
                 parsingTable[{start, terminal}] = transition.end;
             else
             {
-                // ���� epsilon � � FIRST, ������ FOLLOW[start] �� �������
+                // Якщо epsilon є в FIRST, додаємо FOLLOW[start] до таблиці
                 vector<string> followSet = followk[start];
                 for (const string &followTerminal : followSet)
                 {
@@ -453,16 +451,94 @@ map<pair<string, string>, string> buildParsingTable(vector<Transition> transitio
 
 void printParsingTable(const map<pair<string, string>, string> &parsingTable)
 {
-    cout << setw(12) << "Non-Term" << setw(12) << "Terminal" << setw(12) << "Production" << endl;
+    // Вивід заголовків
+    cout << setw(10) << "Non-Term" << setw(10) << "Terminal" << setw(10) << "Production" << endl;
 
+    // Вивід рядків таблиці
     for (const auto &entry : parsingTable)
     {
         string nonTerminal = entry.first.first;
         string terminal = entry.first.second;
         string production = entry.second;
 
-        cout << setw(12) << nonTerminal << setw(12) << terminal << setw(12) << production << endl;
+        cout << setw(10) << nonTerminal << setw(10) << terminal << setw(10) << production << endl;
     }
+}
+
+// Функція для побудови LL(1)-синтаксичного аналізатора за таблицею управління
+void LL1Parser(const string& input, const map<pair<string, string>, string>& parsingTable)
+{
+    stack<string> parseStack;
+    parseStack.push("$");  // Bottom of the stack
+    parseStack.push("S");  // Starting symbol
+
+    cout << setw(20) << "Stack" << setw(20) << "Input" << setw(20) << "Action" << endl;
+
+    size_t inputIndex = 0;
+    while (!parseStack.empty())
+    {
+        // Print the current state
+        cout << setw(20);
+        for (stack<string> tmp = parseStack; !tmp.empty(); tmp.pop())
+            cout << tmp.top();
+        cout << setw(20) << input.substr(inputIndex) << setw(20);
+
+        // Get the top of the stack and the current input symbol
+        string stackTop = parseStack.top();
+        string currentInput = (inputIndex < input.size()) ? string(1, input[inputIndex]) : "";
+
+        // Check if the stack top is a non-terminal
+        if (isNonTerminal(stackTop[0]))
+        {
+            // Look up the production in the parsing table
+            auto it = parsingTable.find({ stackTop, currentInput });
+            if (it != parsingTable.end())
+            {
+                string production = it->second;
+
+                // Pop the non-terminal from the stack
+                parseStack.pop();
+
+                // Push the production onto the stack in reverse order
+                for (int i = production.size() - 1; i >= 0; --i)
+                {
+                    if (production[i] != 'e')  // Skip epsilon
+                        parseStack.push(string(1, production[i]));
+                }
+
+                // Print the production used
+                cout << "Apply production: " << stackTop << " -> " << production;
+            }
+            else
+            {
+                // Error handling: no production in the parsing table
+                cout << "Error: No production for " << stackTop << " and input " << currentInput;
+                break;
+            }
+        }
+        else if (stackTop == currentInput)  // Check if the stack top matches the current input symbol
+        {
+            // Matched terminal, pop from stack and move to the next input symbol
+            parseStack.pop();
+            ++inputIndex;
+            cout << "Matched: " << currentInput;
+        }
+        else
+        {
+            // Error handling: stack top and input do not match
+            cout << "Error: Mismatch between stack top " << stackTop << " and input " << currentInput;
+            break;
+        }
+
+        cout << endl;
+    }
+
+    cout << endl;
+
+    if (inputIndex == input.size() && parseStack.empty())
+        cout << "Parsing successful!" << endl;
+    else
+        cout << "Parsing failed!" << endl;
 }
 
 int main()
@@ -498,12 +574,28 @@ int main()
         cout << endl;
     }
 
-
     map<pair<string, string>, string> parsingTable = buildParsingTable(transitions, firstK, followk, epsilon);
 
+    // Вивід таблиці управління
     cout << "Parsing Table:" << endl;
     printParsingTable(parsingTable);
 
+
+    // побудова LL(1)-синтаксичного аналізатора за таблицею управління
+    string input;
+    //a
+    //a+a
+    //a*a
+    //(a+a)*a
+    //a+(a*a)
+    cout << "Enter input string: " ;
+    cin  >> input;
+
+    cout << "Parsing Input: " << input << endl;
+    cout << "----------------------------------------" << endl;
+
+
+    LL1Parser(input, parsingTable);
 
     //vector<pair<string, vector<string>>> outputTable = GetOutputTable(transitions, followk, firstK);
     /*cout << "OUTPUT Table" << endl;
@@ -519,8 +611,6 @@ int main()
 
     /*vector<string> terminals = GetAllTerminals(transitions);
     vector<string> nonTerminals = GetAllNonTerminals(transitions);*/
-
-
 
     return 0;
 }
