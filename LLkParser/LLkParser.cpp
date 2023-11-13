@@ -5,19 +5,14 @@
 #include <map>
 #include <set>
 #include <stack>
-#include <iomanip>
 #include <algorithm>
+#include <iomanip>
 
 using namespace std;
 
 bool isNonTerminal(char ch)
 {
     return ch >= 'A' && ch <= 'Z';
-}
-
-bool isNonTerminal(string ch)
-{
-    return ch >= "A" && ch <= "Z";
 }
 
 vector<string> combineAllWords(vector<char> first, vector<char> second)
@@ -192,7 +187,7 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
                 {
                     vector<string> previousNonTerminalFirstK = result[string(1, transition.end[0])];
                     vector<string> combinedWords = previousNonTerminalFirstK;
-                    
+
                     if (!isNonTerminal(transition.end[0]))
                     {
                         if (previousStepTerminals == currentNonTerminalFirstK.second)
@@ -202,13 +197,13 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
                         continue;
                     }
 
-                    if (combinedWords.empty()) 
-                    { 
+                    if (combinedWords.empty())
+                    {
                         if (previousStepTerminals == currentNonTerminalFirstK.second)
                         {
                             isNotChanged = true;
                         }
-                        continue; 
+                        continue;
                     }
                     for (int i = 1; i < transition.end.size(); i++)
                     {
@@ -253,7 +248,7 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
             result2[element.first] = element.second;
         }
     }
-    
+
     return result2;
 }
 
@@ -349,81 +344,6 @@ map<string, vector<string>> FollowK1(vector<Transition> transitions, map<string,
     }
     return result;
 }
-
-//vector<pair<string, vector<string>>> GetOutputTable(vector<Transition> transitions, map<string, vector<string>> follow1k, map<string, vector<string>> first1k)
-//{
-//    vector<pair<string, vector<string>>> result;
-//    for (auto & transition : transitions)
-//    {
-//        vector<string> terminals;
-//        for (auto & ch : transition.end)
-//        {
-//            if (!isNonTerminal(ch))
-//            {
-//                if (terminals.empty()) terminals.push_back(string(1, ch));
-//                else terminals = combineAllWords(terminals, ch);
-//            }
-//            else
-//            {
-//                if (terminals.empty()) terminals = first1k[string(1, ch)];
-//                else terminals = combineAllWords(terminals, first1k[string(1, ch)]);
-//            }
-//        }
-//        terminals = combineAllWords(terminals, follow1k[transition.start]);
-//        terminals = GetAllFirstCharactersOfWords(terminals);
-//        result.push_back(make_pair(transition.start, terminals));
-//    }
-//    return result;
-//}
-
-//vector<string> GetAllTerminals(vector<Transition> transitions)
-//{
-//    vector<string> result;
-//    for (auto& transition : transitions)
-//    {
-//        for (auto& ch : transition.end)
-//        {
-//            if (!isNonTerminal(ch))
-//            {
-//                if (find(result.begin(), result.end(), string(1, ch)) == result.end())
-//                {
-//                    result.push_back(string(1, ch));
-//                }
-//            }
-//        }
-//    }
-//    return result;
-//}
-//
-//vector<string> GetAllNonTerminals(vector<Transition> transitions)
-//{
-//    vector<string> result;
-//    for (auto& transition : transitions)
-//    {
-//        for (auto& ch : transition.end)
-//        {
-//            if (isNonTerminal(ch))
-//            {
-//                if (find(result.begin(), result.end(), string(1, ch)) == result.end())
-//                {
-//                    result.push_back(string(1, ch));
-//                }
-//            }
-//        }
-//    }
-//    return result;
-//}
-
-//vector<string> GetLL1ControlTable(vector<pair<string, vector<string>>> outputTable, vector<string> terminals, vector<string> nonTerminals)
-//{
-//    for (auto& nonTerminal : nonTerminals)
-//    {
-//        for (auto& terminal : terminals)
-//        {
-//
-//        }
-//    }
-//}
 
 map<pair<string, string>, string> buildParsingTable(vector<Transition> transitions, map<string, vector<string>> firstk, map<string, vector<string>> followk, set<string> epsilon)
 {
@@ -551,6 +471,10 @@ void LL1Parser(const string& input, const map<pair<string, string>, string>& par
             ++inputIndex;
             cout << "Matched: " << currentInput;
         }
+        else if (stackTop == "$" && currentInput.length() == 0){
+            cout << "Parsing ended successfully";
+            break;
+        }
         else
         {
             // Error handling: stack top and input do not match
@@ -563,7 +487,7 @@ void LL1Parser(const string& input, const map<pair<string, string>, string>& par
 
     cout << endl;
 
-    if (inputIndex == input.size() && parseStack.empty())
+    if (inputIndex == input.size() && !parseStack.empty() && parseStack.top() == "$" && parseStack.top().length() == 1)
         cout << "Parsing successful!" << endl;
     else
         cout << "Parsing failed!" << endl;
@@ -579,7 +503,7 @@ int main()
     for (auto it = epsilon.begin(); it != epsilon.end(); ++it) {
         cout << *it << endl;
     }
-    vector<char>epsilonnonterminals;
+    //vector<char>epsilonnonterminals;
     cout << "First():" << endl;
     for (auto const& element : firstK)
     {
@@ -604,42 +528,26 @@ int main()
 
     map<pair<string, string>, string> parsingTable = buildParsingTable(transitions, firstK, followk, epsilon);
 
-    //// Вивід таблиці управління
-    //cout << "Parsing Table:" << endl;
-    //printParsingTable(parsingTable);
+    // Вивід таблиці управління
+    cout << "Parsing Table:" << endl;
+    printParsingTable(parsingTable);
 
 
     // побудова LL(1)-синтаксичного аналізатора за таблицею управління
-    //string input;
-    ////a
-    ////a+a
-    ////a*a
-    ////(a+a)*a
-    ////a+(a*a)
-    //cout << "Enter input string: " ;
-    //cin  >> input;
+    string input;
+    //a
+    //a+a
+    //a*a
+    //(a+a)*a
+    //a+(a*a)
+    cout << "Enter input string: " ;
+    cin  >> input;
 
-    //cout << "Parsing Input: " << input << endl;
-    //cout << "----------------------------------------" << endl;
+    cout << "Parsing Input: " << input << endl;
+    cout << "----------------------------------------" << endl;
 
 
-    //LL1Parser(input, parsingTable);
-
-    //vector<pair<string, vector<string>>> outputTable = GetOutputTable(transitions, followk, firstK);
-    /*cout << "OUTPUT Table" << endl;
-    for (int i = 0; i < outputTable.size(); i++)
-    {
-        cout << i + 1 << ". " << outputTable[i].first << "->" << transitions[i].end << " " << setw(6);
-        for (auto const& e : outputTable[i].second)
-        {
-            cout << e << " ";
-        }
-        cout << endl;
-    }*/
-
-    /*vector<string> terminals = GetAllTerminals(transitions);
-    vector<string> nonTerminals = GetAllNonTerminals(transitions);*/
+    LL1Parser(input, parsingTable);
 
     return 0;
 }
-
