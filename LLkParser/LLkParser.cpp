@@ -15,6 +15,11 @@ bool isNonTerminal(char ch)
     return ch >= 'A' && ch <= 'Z';
 }
 
+bool isNonTerminal(string ch)
+{
+    return ch >= "A" && ch <= "Z";
+}
+
 vector<string> combineAllWords(vector<char> first, vector<char> second)
 {
     vector<string> result;
@@ -185,11 +190,26 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
             {
                 if (transition.start == currentNonTerminal)
                 {
-                    if (!isNonTerminal(transition.end[0])) continue;
-
                     vector<string> previousNonTerminalFirstK = result[string(1, transition.end[0])];
                     vector<string> combinedWords = previousNonTerminalFirstK;
-                    if (combinedWords.empty()) continue;
+                    
+                    if (!isNonTerminal(transition.end[0]))
+                    {
+                        if (previousStepTerminals == currentNonTerminalFirstK.second)
+                        {
+                            isNotChanged = true;
+                        }
+                        continue;
+                    }
+
+                    if (combinedWords.empty()) 
+                    { 
+                        if (previousStepTerminals == currentNonTerminalFirstK.second)
+                        {
+                            isNotChanged = true;
+                        }
+                        continue; 
+                    }
                     for (int i = 1; i < transition.end.size(); i++)
                     {
                         if (combinedWords.empty()) continue;
@@ -224,9 +244,17 @@ map<string, vector<string>> FirstK(vector<Transition> transitions)
                 }
             }
         }
-
     }
-    return result;
+    map<string, vector<string>> result2;
+    for (auto& element : result)
+    {
+        if (isNonTerminal(element.first[0]))
+        {
+            result2[element.first] = element.second;
+        }
+    }
+    
+    return result2;
 }
 
 set<string>findEpsNonTerminals(vector<Transition>transitions) {
@@ -551,7 +579,7 @@ int main()
     for (auto it = epsilon.begin(); it != epsilon.end(); ++it) {
         cout << *it << endl;
     }
-    //vector<char>epsilonnonterminals;
+    vector<char>epsilonnonterminals;
     cout << "First():" << endl;
     for (auto const& element : firstK)
     {
@@ -576,26 +604,26 @@ int main()
 
     map<pair<string, string>, string> parsingTable = buildParsingTable(transitions, firstK, followk, epsilon);
 
-    // Вивід таблиці управління
-    cout << "Parsing Table:" << endl;
-    printParsingTable(parsingTable);
+    //// Вивід таблиці управління
+    //cout << "Parsing Table:" << endl;
+    //printParsingTable(parsingTable);
 
 
     // побудова LL(1)-синтаксичного аналізатора за таблицею управління
-    string input;
-    //a
-    //a+a
-    //a*a
-    //(a+a)*a
-    //a+(a*a)
-    cout << "Enter input string: " ;
-    cin  >> input;
+    //string input;
+    ////a
+    ////a+a
+    ////a*a
+    ////(a+a)*a
+    ////a+(a*a)
+    //cout << "Enter input string: " ;
+    //cin  >> input;
 
-    cout << "Parsing Input: " << input << endl;
-    cout << "----------------------------------------" << endl;
+    //cout << "Parsing Input: " << input << endl;
+    //cout << "----------------------------------------" << endl;
 
 
-    LL1Parser(input, parsingTable);
+    //LL1Parser(input, parsingTable);
 
     //vector<pair<string, vector<string>>> outputTable = GetOutputTable(transitions, followk, firstK);
     /*cout << "OUTPUT Table" << endl;
